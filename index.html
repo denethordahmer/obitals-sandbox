@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Orbital Sandbox</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="toolApp">
+
+  <header class="toolTopBar">
+    <h1 class="toolTitle">Orbital Sandbox</h1>
+    <button id="btnPlayPause" class="toolAction">Pause</button>
+  </header>
+
+  <main class="toolView">
+
+    <!-- ============ CANVAS ============ -->
+    <section id="canvasArea">
+      <canvas id="orbitCanvas"></canvas>
+
+      <div id="canvasOverlay">
+        <div class="overlayChip" id="playbackChip">Playing · 1x</div>
+        <div class="overlayChip" id="bodyChip">0 bodies</div>
+      </div>
+
+      <div id="canvasHint">Tap or drag anywhere to place a body</div>
+    </section>
+
+    <!-- ============ CONTROLS ============ -->
+    <section id="controls">
+
+      <!-- SPAWN -->
+      <div class="group">
+        <div class="groupTitle">Spawn</div>
+
+        <div class="fieldRow">
+          <label for="bodyType">Body Type</label>
+          <select id="bodyType">
+            <optgroup label="Stars">
+              <option value="star">Star</option>
+            </optgroup>
+            <optgroup label="Planets">
+              <option value="planet_terrestrial" selected>Terrestrial Planet</option>
+              <option value="planet_ocean">Ocean Planet</option>
+              <option value="planet_desert">Desert Planet</option>
+              <option value="planet_ice">Ice Planet</option>
+              <option value="planet_lava">Lava Planet</option>
+              <option value="planet_gas">Gas Giant</option>
+              <option value="planet_super">Super Giant</option>
+            </optgroup>
+            <optgroup label="Small Bodies">
+              <option value="moon">Moon</option>
+              <option value="asteroid">Asteroid</option>
+              <option value="comet">Comet</option>
+            </optgroup>
+            <optgroup label="Exotic">
+              <option value="blackhole">Black Hole</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="sliderRow">
+          <div class="sliderTop">
+            <label for="spawnMass">Mass</label>
+            <span class="val" id="valSpawnMass">5.00</span>
+          </div>
+          <input type="range" id="spawnMass" min="0.01" max="100" step="0.01" value="5">
+        </div>
+
+        <div class="fieldRow">
+          <label for="orbitAssist">Orbit Assist</label>
+          <select id="orbitAssist">
+            <option value="off">Off (manual velocity)</option>
+            <option value="on" selected>On (auto circular)</option>
+          </select>
+        </div>
+
+        <div class="fieldRow btnRow">
+          <button id="btnPresetSolar" class="smallBtn">Solar System</button>
+          <button id="btnPresetBinary" class="smallBtn">Binary Star</button>
+          <button id="btnPresetChaos" class="smallBtn">Chaos</button>
+        </div>
+      </div>
+
+      <!-- PHYSICS -->
+      <div class="group">
+        <div class="groupTitle">Physics</div>
+
+        <div class="fieldRow">
+          <label for="speed">Sim Speed</label>
+          <select id="speed">
+            <option value="0">Paused</option>
+            <option value="0.25">0.25x</option>
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="2">2x</option>
+            <option value="4">4x</option>
+          </select>
+        </div>
+
+        <div class="fieldRow">
+          <label for="gravityStrength">Gravity</label>
+          <select id="gravityStrength">
+            <option value="0">Off (no gravity)</option>
+            <option value="3000">Weak (0.5x)</option>
+            <option value="6000" selected>Normal (1x)</option>
+            <option value="12000">Strong (2x)</option>
+            <option value="24000">Extreme (4x)</option>
+          </select>
+        </div>
+
+        <div class="fieldRow">
+          <label for="collisionMode">Collisions</label>
+          <select id="collisionMode">
+            <option value="merge" selected>Merge</option>
+            <option value="bounce">Bounce</option>
+            <option value="none">Pass through</option>
+          </select>
+        </div>
+
+        <div class="fieldRow">
+          <label for="trailLength">Trail Length</label>
+          <select id="trailLength">
+            <option value="0">Off</option>
+            <option value="50">Short</option>
+            <option value="150" selected>Medium</option>
+            <option value="400">Long</option>
+            <option value="1000">Epic</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- VISUALS -->
+      <div class="group">
+        <div class="groupTitle">Visuals</div>
+
+        <div class="fieldRow">
+          <label for="showVectors">Velocity Vectors</label>
+          <select id="showVectors">
+            <option value="off" selected>Off</option>
+            <option value="on">On</option>
+          </select>
+        </div>
+
+        <div class="fieldRow">
+          <label for="showStarfield">Starfield</label>
+          <select id="showStarfield">
+            <option value="on" selected>On</option>
+            <option value="off">Off</option>
+          </select>
+        </div>
+
+        <div class="fieldRow">
+          <label for="showParticles">Collision Sparks</label>
+          <select id="showParticles">
+            <option value="on" selected>On</option>
+            <option value="off">Off</option>
+          </select>
+        </div>
+
+        <div class="fieldRow btnRow">
+          <button id="btnClearAll" class="smallBtn danger">Clear All</button>
+          <button id="btnDeleteSelected" class="smallBtn">Delete Selected</button>
+        </div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="group">
+        <div class="groupTitle">Export</div>
+
+        <div class="fieldRow">
+          <label for="exportScale">Output Quality</label>
+          <select id="exportScale">
+            <option value="1">1x (small)</option>
+            <option value="2" selected>2x (recommended)</option>
+            <option value="4">4x (high res)</option>
+          </select>
+        </div>
+
+        <div class="fieldRow">
+          <label for="exportName">Filename</label>
+          <input type="text" id="exportName" value="orbital" placeholder="orbital">
+        </div>
+      </div>
+
+      <!-- PRESETS -->
+      <div class="group">
+        <div class="groupTitle">Scenes</div>
+
+        <div class="fieldRow">
+          <label for="presetList">Saved Scenes</label>
+          <select id="presetList">
+            <option value="">— none —</option>
+          </select>
+        </div>
+
+        <div class="fieldRow btnRow">
+          <button id="btnSavePreset" class="smallBtn">Save Current</button>
+          <button id="btnLoadPreset" class="smallBtn">Load</button>
+          <button id="btnDeletePreset" class="smallBtn danger">Delete</button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ============ EXPORT BAR ============ -->
+  <footer class="exportBar">
+    <button id="btnExportPng" class="exportBtn primary">PNG</button>
+    <button id="btnExportJpg" class="exportBtn">JPG</button>
+    <button id="btnRecenter" class="exportBtn">Recenter</button>
+  </footer>
+
+</div>
+
+<script src="orbital.js"></script>
+</body>
+</html>
