@@ -12,7 +12,10 @@
 
   <header class="toolTopBar">
     <h1 class="toolTitle">Orbital Sandbox</h1>
-    <button id="btnPlayPause" class="toolAction">Pause</button>
+    <div class="topBarActions">
+      <button id="btnRewind" class="toolAction" title="Rewind simulation step">⏪ Rewind</button>
+      <button id="btnPlayPause" class="toolAction">Pause</button>
+    </div>
   </header>
 
   <main class="toolView">
@@ -26,11 +29,52 @@
         <div class="overlayChip" id="bodyChip">0 bodies</div>
       </div>
 
+      <!-- Telemetry Card (Feature 6) -->
+      <div id="telemetryCard" class="hidden">
+        <div class="cardHeader">
+          <span id="telName">Planet</span>
+          <button id="btnTelClose" class="cardClose">✕</button>
+        </div>
+        <div class="telGrid">
+          <div><label>Mass</label><span id="telMass">0.00</span></div>
+          <div><label>Speed</label><span id="telSpeed">0.00</span></div>
+          <div><label>Dist</label><span id="telDist">0.00</span></div>
+          <div><label>Period</label><span id="telPeriod">0.00s</span></div>
+        </div>
+      </div>
+
       <div id="canvasHint">Tap or drag anywhere to place a body</div>
     </section>
 
     <!-- ============ CONTROLS ============ -->
     <section id="controls">
+
+      <!-- SELECTED BODY INSPECTOR (Feature 7) -->
+      <div class="group hidden" id="inspectorGroup">
+        <div class="groupTitle">Body Inspector</div>
+        <div class="sliderRow">
+          <div class="sliderTop">
+            <label for="insMass">Mass</label>
+            <span class="val" id="valInsMass">5.00</span>
+          </div>
+          <input type="range" id="insMass" min="0.01" max="100" step="0.01" value="5">
+        </div>
+        <div class="fieldRow">
+          <label for="insColor">Color</label>
+          <input type="color" id="insColor" value="#4d8dff">
+        </div>
+        <div class="fieldRow">
+          <label for="insRings">Saturn Rings</label>
+          <select id="insRings">
+            <option value="off">Off</option>
+            <option value="on">On</option>
+          </select>
+        </div>
+        <div class="fieldRow btnRow">
+          <button id="btnInsDeselect" class="smallBtn">Deselect</button>
+          <button id="btnInsDelete" class="smallBtn danger">Delete</button>
+        </div>
+      </div>
 
       <!-- SPAWN -->
       <div class="group">
@@ -62,12 +106,27 @@
           </select>
         </div>
 
+        <!-- Custom Color Picker (Feature 8) -->
+        <div class="fieldRow">
+          <label for="customColor">Custom Color</label>
+          <input type="color" id="customColor" value="#4d8dff">
+        </div>
+
         <div class="sliderRow">
           <div class="sliderTop">
             <label for="spawnMass">Mass</label>
             <span class="val" id="valSpawnMass">5.00</span>
           </div>
           <input type="range" id="spawnMass" min="0.01" max="100" step="0.01" value="5">
+        </div>
+
+        <!-- Planetary Rings Toggle (Feature 13) -->
+        <div class="fieldRow">
+          <label for="spawnRings">Spawn with Rings</label>
+          <select id="spawnRings">
+            <option value="off" selected>Off</option>
+            <option value="on">On</option>
+          </select>
         </div>
 
         <div class="fieldRow">
@@ -116,6 +175,7 @@
           <label for="collisionMode">Collisions</label>
           <select id="collisionMode">
             <option value="merge" selected>Merge</option>
+            <option value="shatter">Shatter & Merge</option>
             <option value="bounce">Bounce</option>
             <option value="none">Pass through</option>
           </select>
@@ -136,6 +196,33 @@
       <!-- VISUALS -->
       <div class="group">
         <div class="groupTitle">Visuals</div>
+
+        <!-- Spacetime Grid Toggle (Feature 3) -->
+        <div class="fieldRow">
+          <label for="showGrid">Gravity Warping Grid</label>
+          <select id="showGrid">
+            <option value="on" selected>On</option>
+            <option value="off">Off</option>
+          </select>
+        </div>
+
+        <!-- Center of Mass Marker (Feature 5) -->
+        <div class="fieldRow">
+          <label for="showBarycenter">Center of Mass Marker</label>
+          <select id="showBarycenter">
+            <option value="on" selected>On</option>
+            <option value="off">Off</option>
+          </select>
+        </div>
+
+        <!-- Orbit Trajectory Line (Feature 1) -->
+        <div class="fieldRow">
+          <label for="showPrediction">Trajectory Preview</label>
+          <select id="showPrediction">
+            <option value="on" selected>On</option>
+            <option value="off">Off</option>
+          </select>
+        </div>
 
         <div class="fieldRow">
           <label for="showVectors">Velocity Vectors</label>
