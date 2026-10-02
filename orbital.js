@@ -1,13 +1,6 @@
 /* =========================================================================
-   ORBITAL SANDBOX — orbital.js (v5)
+   ORBITAL SANDBOX — orbital.js (v5.1 Patch)
    N-body gravity simulation with collisions, trails, presets, and export.
-
-   v5 changes (over v4):
-   - Back to a single star type.
-   - Six planet types for variety: Terrestrial, Ocean, Desert, Lava, Ice,
-     Gas Giant, Super Giant. Small to huge.
-   - moon, asteroid, comet, blackhole retained.
-   - All physics, trails, collisions, export unchanged from v4.
    ========================================================================= */
 
 (function () {
@@ -62,9 +55,13 @@
 
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
-    dpr = window.devicePixelRatio || 1;
-    cw = rect.width;
-    ch = rect.height;
+    const newDpr = window.devicePixelRatio || 1;
+    const newCw = rect.width;
+    const newCh = rect.height;
+    if (newCw === cw && newCh === ch && newDpr === dpr) return;
+    dpr = newDpr;
+    cw = newCw;
+    ch = newCh;
     canvas.width = Math.round(cw * dpr);
     canvas.height = Math.round(ch * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -212,7 +209,7 @@
      ======================================================================= */
   function createBody(x, y, vx, vy, type, mass) {
     const t = BODY_TYPES[type] || BODY_TYPES.planet_terrestrial;
-    const m = Math.max(0.01, mass || t.baseMass);
+    const m = Math.max(0.01, mass !== undefined ? mass : t.baseMass);
     const radius = Math.pow(m, 0.35) * t.radiusFactor + 2;
     const cap = parseInt(trailLength.value, 10) || 0;
     const body = {
@@ -365,7 +362,11 @@
       isStar = false;
       isBlackhole = true;
     } else if (a.isStar || b.isStar) {
-      type = winner.type;
+      const starObj = a.isStar ? a : b;
+      type = starObj.type;
+      color = starObj.color;
+      glow = starObj.glow;
+      isStar = true;
       isBlackhole = false;
     }
 
@@ -495,7 +496,7 @@
     }
 
     for (const b of bodies) {
-      if (!b.trail || b.trailCount < 2) continue;
+      if (!b.trail || b.trailCount < 1) continue;
       const cap = b.trailCap;
       const head = b.trailHead;
       const count = b.trailCount;
@@ -510,6 +511,9 @@
         if (i === 0) ctx.moveTo(p.x, p.y);
         else ctx.lineTo(p.x, p.y);
       }
+      const curP = worldToCanvas(b.x, b.y);
+      ctx.lineTo(curP.x, curP.y);
+
       ctx.strokeStyle = hexAlpha(b.glow, 0.35);
       ctx.lineWidth = Math.max(1, Math.min(3, b.radius * 0.4));
       ctx.lineCap = "round";
@@ -712,9 +716,14 @@
       announceFirstPlacement();
     } else {
       const hitBody = bodyAtPoint(dragState.startWorld.x, dragState.startWorld.y);
+      const hadSelection = bodies.some(b => b.selected);
+
       if (hitBody) {
         for (const b of bodies) b.selected = false;
         hitBody.selected = true;
+      } else if (hadSelection) {
+        // Deselect current body on empty space click instead of accidental spawning
+        for (const b of bodies) b.selected = false;
       } else {
         const assist = orbitAssist.value === "on";
         let vx = 0, vy = 0;
@@ -727,8 +736,9 @@
             if (r > 1) {
               const G = parseFloat(gravityStrength.value) * 10;
               const spd = Math.sqrt(G * target.mass / r);
-              vx = (-dy / r) * spd;
-              vy = (dx / r) * spd;
+              // Relative velocity patch: add attractor's vx/vy
+              vx = target.vx + (-dy / r) * spd;
+              vy = target.vy + (dx / r) * spd;
             }
           }
         }
@@ -759,7 +769,7 @@
     let best = null;
     let bestScore = 0;
     for (const b of bodies) {
-      if (b.mass < 1) continue;
+      if (b.mass <= 0) continue;
       const dx = worldPos.x - b.x;
       const dy = worldPos.y - b.y;
       const r2 = dx * dx + dy * dy;
@@ -794,11 +804,24 @@
   }
 
   btnPlayPause.addEventListener("click", () => {
-    running = !running;
+    const spd = parseFloat(speed.value);
+    if (!running || spd === 0) {
+      running = true;
+      if (spd === 0) speed.value = "1";
+    } else {
+      running = false;
+    }
     updatePlaybackUI();
   });
 
-  speed.addEventListener("change", updatePlaybackUI);
+  speed.addEventListener("change", () => {
+    if (parseFloat(speed.value) > 0) {
+      running = true;
+    } else {
+      running = false;
+    }
+    updatePlaybackUI();
+  });
 
   /* =======================================================================
      BODY CHIP
@@ -816,6 +839,8 @@
     }
     bodies = [];
     particles = [];
+    camera.x = 0;
+    camera.y = 0;
     updateBodyChip();
     firstPlacementDone = false;
     canvasHint.classList.remove("hidden");
@@ -952,6 +977,8 @@
     out.width = outW;
     out.height = outH;
     const octx = out.getContext("2d");
+    octx.imageSmoothingEnabled = true;
+    octx.imageSmoothingQuality = "high";
     octx.drawImage(canvas, 0, 0, outW, outH);
 
     const mime = format === "jpg" ? "image/jpeg" : "image/png";
@@ -1061,8 +1088,8 @@
     const rawDt = Math.min(0.05, (ts - lastTs) / 1000);
     lastTs = ts;
 
-    if (running && bodies.length > 0) {
-      const spd = parseFloat(speed.value);
+    const spd = parseFloat(speed.value);
+    if (running && spd > 0 && bodies.length > 0) {
       const totalDt = rawDt * spd;
       const maxStep = 0.008;
       const steps = Math.max(1, Math.ceil(totalDt / maxStep));
